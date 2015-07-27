@@ -37,7 +37,7 @@ namespace Pheal\Access;
 
 use Pheal\Exceptions\AccessException;
 
-class StaticCheck implements CanCheck
+class StaticAccess implements CanAccess
 {
     /**
      * Key Type of the given API key
@@ -57,62 +57,62 @@ class StaticCheck implements CanCheck
      * with manually added information
      * @var array
      */
-    protected $bits = array(
-        'char' => array(
-            'contracts' => array('Character', 67108864),
-            'wallettransactions' => array('Character', 4194304),
-            'walletjournal' => array('Character', 2097152),
-            'upcomingcalendarevents' => array('Character', 1048576),
-            'standings' => array('Character', 524288),
-            'skillqueue' => array('Character', 262144),
-            'skillintraining' => array('Character', 131072),
-            'research' => array('Character', 65536),
-            'notificationtexts' => array('Character', 32768),
-            'notifications' => array('Character', 16384),
-            'medals' => array('Character', 8192),
-            'marketorders' => array('Character', 4096),
-            'mailmessages' => array('Character', 2048),
-            'mailinglists' => array('Character', 1024),
-            'mailbodies' => array('Character', 512),
-            'killlog' => array('Character', 256),
-            'industryjobs' => array('Character', 128),
-            'facwarstats' => array('Character', 64),
-            'contactnotifications' => array('Character', 32),
-            'contactlist' => array('Character', 16),
-            'charactersheet' => array('Character', 8),
-            'calendareventattendees' => array('Character', 4),
-            'assetlist' => array('Character', 2),
-            'accountbalance' => array('Character', 1)
-        ),
-        'account' => array(
-            'accountstatus' => array('Character', 33554432)
-        ),
-        'corp' => array(
-            'contracts' => array('Corporation', 8388608),
-            'titles' => array('Corporation', 4194304),
-            'wallettransactions' => array('Corporation', 2097152),
-            'walletjournal' => array('Corporation', 1048576),
-            'starbaselist' => array('Corporation', 524288),
-            'standings' => array('Corporation', 262144),
-            'starbasedetail' => array('Corporation', 131072),
-            'shareholders' => array('Corporation', 65536),
-            'outpostservicedetail' => array('Corporation', 32768),
-            'outpostlist' => array('Corporation', 16384),
-            'medals' => array('Corporation', 8192),
-            'marketorders' => array('Corporation', 4096),
-            'membertracking' => array('Corporation', 2048),
-            'membersecuritylog' => array('Corporation', 1024),
-            'membersecurity' => array('Corporation', 512),
-            'killlog' => array('Corporation', 256),
-            'industryjobs' => array('Corporation', 128),
-            'facwarstats' => array('Corporation', 64),
-            'containerlog' => array('Corporation', 32),
-            'contactlist' => array('Corporation', 16),
-            'corporationsheet' => array('Corporation', 8),
-            'membermedals' => array('Corporation', 4),
-            'assetlist' => array('Corporation', 2),
-            'accountbalance' => array('Corporation', 1)
-        )
+    protected static $bits = [
+        'char' => [
+            'contracts' => ['Character', 67108864],
+            'wallettransactions' => ['Character', 4194304],
+            'walletjournal' => ['Character', 2097152],
+            'upcomingcalendarevents' => ['Character', 1048576],
+            'standings' => ['Character', 524288],
+            'skillqueue' => ['Character', 262144],
+            'skillintraining' => ['Character', 131072],
+            'research' => ['Character', 65536],
+            'notificationtexts' => ['Character', 32768],
+            'notifications' => ['Character', 16384],
+            'medals' => ['Character', 8192],
+            'marketorders' => ['Character', 4096],
+            'mailmessages' => ['Character', 2048],
+            'mailinglists' => ['Character', 1024],
+            'mailbodies' => ['Character', 512],
+            'killlog' => ['Character', 256],
+            'industryjobs' => ['Character', 128],
+            'facwarstats' => ['Character', 64],
+            'contactnotifications' => ['Character', 32],
+            'contactlist' => ['Character', 16],
+            'charactersheet' => ['Character', 8],
+            'calendareventattendees' => ['Character', 4],
+            'assetlist' => ['Character', 2],
+            'accountbalance' => ['Character', 1]
+        ],
+        'account' => [
+            'accountstatus' => ['Character', 33554432]
+        ],
+        'corp' => [
+            'contracts' => ['Corporation', 8388608],
+            'titles' => ['Corporation', 4194304],
+            'wallettransactions' => ['Corporation', 2097152],
+            'walletjournal' => ['Corporation', 1048576],
+            'starbaselist' => ['Corporation', 524288],
+            'standings' => ['Corporation', 262144],
+            'starbasedetail' => ['Corporation', 131072],
+            'shareholders' => ['Corporation', 65536],
+            'outpostservicedetail' => ['Corporation', 32768],
+            'outpostlist' => ['Corporation', 16384],
+            'medals' => ['Corporation', 8192],
+            'marketorders' => ['Corporation', 4096],
+            'membertracking' => ['Corporation', 2048],
+            'membersecuritylog' => ['Corporation', 1024],
+            'membersecurity' => ['Corporation', 512],
+            'killlog' => ['Corporation', 256],
+            'industryjobs' => ['Corporation', 128],
+            'facwarstats' => ['Corporation', 64],
+            'containerlog' => ['Corporation', 32],
+            'contactlist' => ['Corporation', 16],
+            'corporationsheet' => ['Corporation', 8],
+            'membermedals' => ['Corporation', 4],
+            'assetlist' => ['Corporation', 2],
+            'accountbalance' => ['Corporation', 1]
+        ]
 
         // characterinfo is a public call with more details if you've better api keys
         // no detailed configuration needed atm
@@ -121,7 +121,7 @@ class StaticCheck implements CanCheck
             'characterinfo'           => array('Character', array(16777216, 8388608))
         )
         */
-    );
+    ];
 
     /**
      * Check if the api key is allowed to make this api call

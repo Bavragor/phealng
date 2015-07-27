@@ -49,13 +49,13 @@ class RedisStorage implements CanCache
      *
      * @var array
      */
-    protected $options = array(
+    protected $options = [
         'host' => '127.0.0.1',
         'port' => 6379,
         'persistent' => true,
         'auth' => null,
         'prefix' => 'Pheal'
-    );
+    ];
 
     /**
      * Load XML from cache
@@ -128,7 +128,7 @@ class RedisStorage implements CanCache
         date_default_timezone_set('UTC');
 
         $xml = @new \SimpleXMLElement($xml);
-        $dt = (int) strtotime($xml->cachedUntil);
+        $dt = (int)strtotime($xml->cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
@@ -143,7 +143,7 @@ class RedisStorage implements CanCache
      * @throws \Pheal\Exceptions\PhealException
      * @return \Pheal\Cache\RedisStorage
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = $options + $this->options;
         $this->redis = new \Redis();

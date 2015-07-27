@@ -82,7 +82,7 @@ class RowSetRow extends \ArrayObject implements CanConvertToArray
      */
     public function toArray()
     {
-        $return = array();
+        $return = [];
         foreach ($this as $key => $value) {
             $return[$key] = ($value instanceof CanConvertToArray) ? $value->toArray() : $value;
         }

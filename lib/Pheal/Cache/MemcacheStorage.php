@@ -44,7 +44,7 @@ class MemcacheStorage extends MemcacheBase implements CanCache
      *
      * @param array $options optional config array, valid keys are: host, port
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = $options + $this->options;
         $this->memcache = new \Memcache();
@@ -64,7 +64,7 @@ class MemcacheStorage extends MemcacheBase implements CanCache
     public function load($userid, $apikey, $scope, $name, $args)
     {
         $key = $this->getKey($userid, $apikey, $scope, $name, $args);
-        return (string) $this->memcache->get($key);
+        return (string)$this->memcache->get($key);
     }
 
     /**

@@ -58,7 +58,7 @@ class PdoStorage implements CanCache
      *
      * @var type
      */
-    protected $statements = array();
+    protected $statements = [];
 
     /**
      * Constructs the database cache
@@ -71,7 +71,7 @@ class PdoStorage implements CanCache
      * @param array $dbOptions (optional) additional options for PDO
      * @throws PhealException
      */
-    public function __construct($dsn, $username, $password, $table = false, array $dbOptions = array())
+    public function __construct($dsn, $username, $password, $table = false, array $dbOptions = [])
     {
         $this->db = new \PDO($dsn, $username, $password, $dbOptions);
         $this->db->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
@@ -126,7 +126,7 @@ class PdoStorage implements CanCache
         $result = '';
         $invalidKeys = array('userid', 'apikey', 'keyid', 'vcode');
         foreach ($args as $key => $value) {
-            $key   = trim($key);
+            $key = trim($key);
             $value = trim($value);
             if (empty($value) || in_array($key, $invalidKeys)) {
                 // ignore the invalid keys...
@@ -168,9 +168,9 @@ class PdoStorage implements CanCache
             $statement->execute(
                 array(
                     ':userId' => $userid,
-                    ':scope'  => $scope,
-                    ':name'   => $name,
-                    ':args'   => $argumentString,
+                    ':scope' => $scope,
+                    ':name' => $name,
+                    ':args' => $argumentString,
                 )
             );
 
@@ -202,12 +202,12 @@ class PdoStorage implements CanCache
         $tz = date_default_timezone_get();
         date_default_timezone_set('UTC');
 
-        $dt   = (int) strtotime($cachedUntil);
+        $dt = (int)strtotime($cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
 
-        return (bool) ($dt > $time);
+        return (bool)($dt > $time);
     }
 
     /**
@@ -241,9 +241,9 @@ class PdoStorage implements CanCache
             $deleteStatement->execute(
                 array(
                     ':userId' => $userid,
-                    ':scope'  => $scope,
-                    ':name'   => $name,
-                    ':args'   => $argumentString,
+                    ':scope' => $scope,
+                    ':name' => $name,
+                    ':args' => $argumentString,
                 )
             );
         } catch (\PDOException $e) {
@@ -259,11 +259,11 @@ class PdoStorage implements CanCache
             $statement->execute(
                 array(
                     ':userId' => $userid,
-                    ':scope'  => $scope,
-                    ':name'   => $name,
-                    ':args'   => $argumentString,
+                    ':scope' => $scope,
+                    ':name' => $name,
+                    ':args' => $argumentString,
                     ':cachedUntil' => $xml->cachedUntil,
-                    ':xml'    => $xml->asXML(),
+                    ':xml' => $xml->asXML(),
                 )
             );
         } catch (\PDOException $e) {

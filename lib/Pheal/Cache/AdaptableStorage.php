@@ -123,7 +123,7 @@ class AdaptableStorage implements CanCache
         date_default_timezone_set('UTC');
 
         $xml = @new \SimpleXMLElement($xml);
-        $dt = (int) strtotime($xml->cachedUntil);
+        $dt = (int)strtotime($xml->cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
@@ -144,12 +144,12 @@ class AdaptableStorage implements CanCache
         date_default_timezone_set('UTC');
 
         $xml = @new \SimpleXMLElement($xml);
-        $dt = (int) strtotime($xml->cachedUntil);
+        $dt = (int)strtotime($xml->cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
 
-        return (bool) ($dt > $time);
+        return (bool)($dt > $time);
     }
 
     /**
@@ -157,11 +157,12 @@ class AdaptableStorage implements CanCache
      *
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = $options + $this->options;
         $this->adapter = new Adaptable(array(
-            'save' => $this->options['save'], 'load' => $this->options['load']
+            'save' => $this->options['save'],
+            'load' => $this->options['load']
         ));
     }
 }

@@ -73,10 +73,10 @@ class FileStorage implements CanLog
      * @param bool|string $basepath optional string on where to store files, defaults to ~/.pheal/cache/
      * @param array $options optional config array, valid keys are: delimiter, umask, umask_directory
      */
-    public function __construct($basepath = false, $options = array())
+    public function __construct($basepath = false, $options = [])
     {
         if (!$basepath) {
-            $this->basepath = getenv('HOME').'/.pheal/log/';
+            $this->basepath = getenv('HOME') . '/.pheal/log/';
         } else {
             $this->basepath = (string)$basepath;
         }
@@ -86,7 +86,6 @@ class FileStorage implements CanLog
             $this->options = array_merge($this->options, $options);
         }
     }
-
 
 
     /**
@@ -145,7 +144,7 @@ class FileStorage implements CanLog
         }
 
         // create full logfile name (incl. name passing through strftime
-        $fullFilename = $this->basepath.strftime($filename);
+        $fullFilename = $this->basepath . strftime($filename);
 
         // create the logfile of not existing
         if (!file_exists($fullFilename)) {

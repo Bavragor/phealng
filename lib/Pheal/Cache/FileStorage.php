@@ -60,12 +60,12 @@ class FileStorage implements CanCache
      * @param bool|string $basepath string on where to store files, defaults to the current/users/home/.pheal/cache/
      * @param array $options optional config array, valid keys are: delimiter, umask, umask_directory
      */
-    public function __construct($basepath = false, $options = array())
+    public function __construct($basepath = false, $options = [])
     {
         if (!$basepath) {
             $this->basepath = getenv('HOME') . '/.pheal/cache/';
         } else {
-            $this->basepath = (string) $basepath;
+            $this->basepath = (string)$basepath;
         }
 
         // Windows systems don't allow : as part of the filename
@@ -104,10 +104,10 @@ class FileStorage implements CanCache
                 unset($args[$key]);
             } elseif (!in_array(strtolower($key), array('userid', 'apikey', 'keyid', 'vcode'))) {
                 $argstr .= preg_replace($regexp, '_', $key) . $this->options['delimiter'] . preg_replace(
-                    $regexp,
-                    '_',
-                    $val
-                ) . $this->options['delimiter'];
+                        $regexp,
+                        '_',
+                        $val
+                    ) . $this->options['delimiter'];
             }
         }
         $argstr = substr($argstr, 0, -1);
@@ -176,12 +176,12 @@ class FileStorage implements CanCache
         date_default_timezone_set('UTC');
 
         $xml = @new \SimpleXMLElement($xml);
-        $dt = (int) strtotime($xml->cachedUntil);
+        $dt = (int)strtotime($xml->cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
 
-        return (bool) ($dt > $time);
+        return (bool)($dt > $time);
     }
 
     /**
@@ -208,6 +208,6 @@ class FileStorage implements CanCache
             chmod($filename, $this->options['umask']);
         }
 
-        return (bool) $result;
+        return (bool)$result;
     }
 }

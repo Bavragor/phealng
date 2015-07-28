@@ -35,7 +35,7 @@ class Container implements CanConvertToArray
     /**
      * @var array
      */
-    private $myData = array();
+    private $myData = [];
 
     /**
      * Adds an Element to the container
@@ -76,7 +76,7 @@ class Container implements CanConvertToArray
      */
     public function toArray()
     {
-        $return = array();
+        $return = [];
         foreach ($this->myData as $key => $value) {
             $return[$key] = ($value instanceof CanConvertToArray) ? $value->toArray() : $value;
         }

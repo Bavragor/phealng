@@ -36,7 +36,7 @@ class HTTPException extends PhealException
      * http response code to string conversation
      * @var array list of httpcode > description
      */
-    private static $codes = array(
+    private static $codes = [
 
         // Informational 1xx
         100 => 'Continue',
@@ -96,7 +96,6 @@ class HTTPException extends PhealException
         496 => 'Cert Error',
         497 => 'HTTP to HTTPS',
         499 => 'Client Closed Request',
-
         // Server Error 5xx
         500 => 'Internal Server Error',
         501 => 'Not Implemented',
@@ -113,7 +112,7 @@ class HTTPException extends PhealException
         522 => 'Connection timed out',
         598 => 'Network read timeout error',
         599 => 'Network connect timeout error'
-    );
+    ];
 
     /**
      * requested url

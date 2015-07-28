@@ -45,7 +45,7 @@ class MemcachedStorage extends MemcacheBase implements CanCache
      *
      * @param array $options optional config array, valid keys are: host, port
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = $options + $this->options;
         $this->memcached = new \Memcached();
@@ -67,7 +67,7 @@ class MemcachedStorage extends MemcacheBase implements CanCache
     {
         $key = $this->getKey($userid, $apikey, $scope, $name, $args);
 
-        $age_data = $this->memcached->get($key.'_age');
+        $age_data = $this->memcached->get($key . '_age');
         $age_result = $this->memcached->getResultCode();
 
         if ($age_result != 0) {
@@ -116,10 +116,10 @@ class MemcachedStorage extends MemcacheBase implements CanCache
             $set = $this->memcached->set($key, $xml, $timeout);
         }
 
-        $replace_age = $this->memcached->replace($key.'_age', array('age' => $time, 'ttl' => $ttl), $timeout);
+        $replace_age = $this->memcached->replace($key . '_age', array('age' => $time, 'ttl' => $ttl), $timeout);
 
         if (!$replace_age) {
-            $set_age = $this->memcached->set($key.'_age', array('age' => $time, 'ttl' => $ttl), $timeout);
+            $set_age = $this->memcached->set($key . '_age', array('age' => $time, 'ttl' => $ttl), $timeout);
         }
 
         return (($replace || $set) && ($replace_age || $set_age));

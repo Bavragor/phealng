@@ -28,9 +28,9 @@
 namespace Pheal\Access;
 
 /**
- * Interface that should be implemented by the access handlers
+ * null access, as a placeholder if no access verification is used
  */
-interface CanCheck
+class NullAccess implements CanAccess
 {
     /**
      * Check if the api key is allowed to make this api call
@@ -38,7 +38,10 @@ interface CanCheck
      * @param string $name
      * @param string $keyType
      * @param int $accessMask
-     * @return boolean
+     * @return bool
      */
-    public function check($scope, $name, $keyType, $accessMask);
+    public function check($scope, $name, $keyType, $accessMask)
+    {
+        return true;
+    }
 }

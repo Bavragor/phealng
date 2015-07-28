@@ -130,7 +130,7 @@ class Result implements CanConvertToArray
                 'result' => $this->rootElement->toArray()
             );
         } else {
-            return array();
+            return [];
         }
     }
 }

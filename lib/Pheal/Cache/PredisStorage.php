@@ -129,7 +129,7 @@ class PredisStorage implements CanCache
         date_default_timezone_set('UTC');
 
         $xml = @new \SimpleXMLElement($xml);
-        $dt = (int) strtotime($xml->cachedUntil);
+        $dt = (int)strtotime($xml->cachedUntil);
         $time = time();
 
         date_default_timezone_set($tz);
@@ -144,13 +144,13 @@ class PredisStorage implements CanCache
      * @throws \Pheal\Exceptions\PhealException
      * @return \Pheal\Cache\RedisStorage
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = $options + $this->options;
         $this->redis = new \Predis\Client([
             'scheme' => 'tcp',
-            'host'   => $this->options['host'],
-            'port'   => $this->options['port'],
+            'host' => $this->options['host'],
+            'port' => $this->options['port'],
             'password' => $this->options['password'],
         ]);
     }

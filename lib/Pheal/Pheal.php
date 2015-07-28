@@ -27,19 +27,21 @@
 
 namespace Pheal;
 
-/**
- * Pheal (PHp Eve Api Library), a EAAL Port for PHP
- */
-
-use Pheal\Core\Config;
+use Pheal\Access\CanAccess;
+use Pheal\Archive\CanArchive;
+use Pheal\Cache\CanCache;
 use Pheal\Core\Result;
 use Pheal\Exceptions\ConnectionException;
 use Pheal\Exceptions\HTTPException;
 use Pheal\Exceptions\PhealException;
+use Pheal\Fetcher\CanFetch;
+use Pheal\Log\CanLog;
+use Pheal\RateLimiter\CanRateLimit;
 
 /**
- * Class Pheal
+ * Pheal (PHp Eve Api Library), a EAAL Port for PHP
  * @method Result APIKeyInfo()
+ * @author Kevin Mauel | Bavragor (https://github.com/Bavragor) <kevin.mauel2@gmail.com>
  */
 class Pheal
 {
@@ -48,12 +50,12 @@ class Pheal
      *
      * @var string
      */
-    const VERSION = '2.2.1';
+    const VERSION = '3.0.0';
 
     /**
      * @var int
      */
-    private $userid;
+    private $userId;
 
     /**
      * @var string
@@ -83,16 +85,80 @@ class Pheal
     public $xml;
 
     /**
-     * creates new Pheal API object
-     * @param int $userid the EVE userid/keyID
-     * @param string $key the EVE apikey/vCode
-     * @param string $scope to use, defaults to account. can be changed during runtime by modifying attribute "scope"
+     * Cache Object, defaults to an \Pheal\Cache\NullStorage Object
+     * @var CanCache
      */
-    public function __construct($userid = null, $key = null, $scope = 'account')
-    {
-        $this->userid = $userid;
+    public $cache;
+
+    /**
+     * Archive Object, defaults to an \Pheal\Archive\NullStorage Object
+     * @var CanArchive
+     */
+    public $archive;
+
+    /**
+     * Access Object to validate and check an API with a given keyType+accessMask
+     * defaults to \Pheal\Access\NullAccess
+     * @var CanAccess
+     */
+    public $access;
+
+    /**
+     * Fetcher object to decide what technology is to be used to fetch
+     * defaults to \Pheal\Fetcher\Guzzle
+     * @var CanFetch
+     */
+    public $fetcher;
+
+    /**
+     * Log object to log and measure the API calls that were made
+     * defaults to \Pheal\Log\NullStorage (== no logging)
+     *
+     * @var CanLog
+     */
+    public $log;
+
+    /**
+     * Rate limiter object to avoid exceeding CCP-defined maximum requests per second.
+     * Defaults to \Pheal\RateLimiter\NullRateLimiter (== no rate limiting)
+     *
+     * @var CanRateLimit
+     */
+    public $rateLimiter;
+
+    /**
+     * creates new Pheal API object
+     * @param CanCache $cache
+     * @param CanArchive $archive
+     * @param CanLog $log
+     * @param CanAccess $access
+     * @param CanFetch $fetcher
+     * @param CanRateLimit $rateLimit
+     * @param null $userId
+     * @param string $key the EVE apikey/vCode
+     * @param string $scope to use, defaults to account. Can be changed during runtime by modifying attribute "scope"
+     */
+    public function __construct(
+        CanCache $cache,
+        CanArchive $archive,
+        CanLog $log,
+        CanAccess $access,
+        CanFetch $fetcher,
+        CanRateLimit $rateLimit,
+        $userId = null,
+        $key = null,
+        $scope = 'account'
+    ) {
+        $this->userId = $userId;
         $this->key = $key;
         $this->scope = $scope;
+
+        $this->cache = $cache;
+        $this->archive = $archive;
+        $this->log = $log;
+        $this->access = $access;
+        $this->fetcher = $fetcher;
+        $this->rateLimiter = $rateLimit;
     }
 
     /**
@@ -104,11 +170,11 @@ class Pheal
     public function __call($name, $arguments)
     {
         if (count($arguments) < 1 || !is_array($arguments[0])) {
-            $arguments[0] = array();
+            $arguments[0] = [];
         }
         $scope = $this->scope;
-        return $this->requestXml($scope, $name, $arguments[0]); // we only use the
-        //first argument params need to be passed as an array, due to naming
+        // we only use the first argument params need to be passed as an array, due to naming
+        return $this->requestXml($scope, $name, $arguments[0]);
 
     }
 
@@ -119,7 +185,10 @@ class Pheal
      */
     public function __get($name)
     {
-        if (preg_match('/(.+)Scope$/', $name, $matches) == 1) {
+        /**
+         * TODO: A regex is usually slower than php builtin functions
+         */
+        if (preg_match('/(.+)Scope$/', $name, $matches) === 1) {
             $this->scope = $matches[1];
             return $this;
         }
@@ -128,8 +197,8 @@ class Pheal
 
     /**
      * Set keyType/accessMask
-     * @param string $keyType   must be Account/Character/Corporation or null
-     * @param int $accessMask   must be integer or 0
+     * @param string $keyType must be Account/Character/Corporation or null
+     * @param int $accessMask must be integer or 0
      * @return void
      */
     public function setAccess($keyType = null, $accessMask = 0)
@@ -166,104 +235,100 @@ class Pheal
     public function detectAccess()
     {
         // don't request keyinfo if api keys are not set or if new CAK aren't enabled
-        if (!$this->userid || !$this->key || !Config::getInstance()->api_customkeys) {
+        if (!$this->userId || !$this->key || !$this->fetcher->api_customkeys) {
             return false;
         }
 
         // request api key info, save old scope and restore it afterwords
         $old = $this->scope;
-        $this->scope = "account";
-        $keyinfo = $this->APIKeyInfo();
+        $this->scope = 'account';
+        $keyInfo = $this->APIKeyInfo();
         $this->scope = $old;
 
-        // set detected keytype and accessMask
-        $this->setAccess($keyinfo->key->type, $keyinfo->key->accessMask);
+        // set detected keyType and accessMask
+        $this->setAccess($keyInfo->key->type, $keyInfo->key->accessMask);
 
         // return the APIKeyInfo Result object in the case you need it.
-        return $keyinfo;
+        return $keyInfo;
     }
 
     /**
-     * method will ask caching class for valid xml, if non valid available
+     * Method will ask caching class for valid xml, if non valid available
      * will make API call, and return the appropriate result
      *
      * @param string $scope api scope (examples: eve, map, server, ...)
      * @param string $name api method (examples: ServerStatus, Kills, Sovereignty, ...)
-     * @param array $opts additional args (example.: characterID => 12345), shouldn't contain apikey/userid/keyid/vcode
-     *
-     * @throws \Pheal\Exceptions\ConnectionException
-     * @throws \Pheal\Exceptions\PhealException
-     * @throws \Pheal\Exceptions\HTTPException
+     * @param array $options additional args (example.: characterID => 12345), shouldn't contain apikey/userid/keyid/vcode
+     * @throws ConnectionException
+     * @throws HTTPException
+     * @throws PhealException
      * @throws \Exception
-     * @return \Pheal\Core\Result
+     * @return Result
+     *
      */
-    private function requestXml($scope, $name, array $opts = array())
+    private function requestXml($scope, $name, array $options = [])
     {
-        $opts = array_merge(Config::getInstance()->additional_request_parameters, $opts);
-
-        // apikey/userid/keyid|vcode shouldn't be allowed in arguments and removed to avoid wrong cached api calls
-        foreach ($opts as $k => $v) {
-            if (in_array(strtolower($k), array('userid', 'apikey', 'keyid', 'vcode'))) {
-                unset($opts[$k]);
+        // apikey/userid/keyid|vcode shouldn't be allowed in arguments and
+        // removed to avoid wrong cached api calls
+        foreach ($options as $key => $value) {
+            if (in_array(strtolower($key), array('userid', 'apikey', 'keyid', 'vcode'))) {
+                unset($options[$key]);
             }
         }
 
         // prepare http arguments + url (to not modify original argument list for cache saving)
-        $url = Config::getInstance()->api_base . $scope . '/' . $name . '.xml.aspx';
-        $use_customkey = (bool)Config::getInstance()->api_customkeys;
-        $http_opts = $opts;
-        if ($this->userid) {
-            $http_opts[($use_customkey ? 'keyID' : 'userid')] = $this->userid;
+        $url = $this->fetcher->api_base . $scope . '/' . $name . '.xml.aspx';
+        $useCustomKey = (bool)$this->fetcher->api_customkeys;
+        $http_opts = $options;
+        if ($this->userId) {
+            $http_opts[($useCustomKey ? 'keyID' : 'userid')] = $this->userId;
         }
         if ($this->key) {
-            $http_opts[($use_customkey ? 'vCode' : 'apikey')] = $this->key;
+            $http_opts[($useCustomKey ? 'vCode' : 'apikey')] = $this->key;
         }
 
         // check access level if given (throws PhealAccessExpception if API call is not allowed)
-        if ($use_customkey && $this->userid && $this->key && $this->keyType) {
+        if ($useCustomKey && $this->userId && $this->key && $this->keyType) {
             try {
-                Config::getInstance()->access->check($scope, $name, $this->keyType, $this->accessMask);
+                $this->access->check($scope, $name, $this->keyType, $this->accessMask);
             } catch (\Exception $e) {
-                Config::getInstance()->log->errorLog($scope, $name, $http_opts, $e->getMessage());
+                $this->log->errorLog($scope, $name, $http_opts, $e->getMessage());
                 throw $e;
             }
         }
 
         // check cache first
-        if (!$this->xml = Config::getInstance()->cache->load($this->userid, $this->key, $scope, $name, $opts)) {
+        if (!$this->xml = $this->cache->load($this->userId, $this->key, $scope, $name, $options)) {
             try {
                 // start measure the response time
-                Config::getInstance()->log->start();
+                $this->log->start();
 
                 // rate limit
-                Config::getInstance()->rateLimiter->rateLimit();
-
-                $config = Config::getInstance();
-                $config->fetcher->init($config);
+                $this->rateLimiter->rateLimit();
 
                 // request
-                $this->xml = $config->fetcher->fetch($url, $http_opts);
+                $this->xml = $this->fetcher->fetch($url, $http_opts);
 
                 // stop measure the response time
-                Config::getInstance()->log->stop();
+                $this->log->stop();
 
                 $element = @new \SimpleXMLElement($this->xml);
 
                 // check if we could parse this
                 if ($element === false) {
-                    $errmsgs = '';
+                    $errorMessage = '';
                     foreach (libxml_get_errors() as $error) {
-                        $errmsgs .= $error->message . "\n";
+                        $errorMessage .= $error->message . "\n";
                     }
-                    throw new PhealException('XML Parser Error: ' . $errmsgs);
+                    throw new PhealException('XML Parser Error: ' . $errorMessage);
                 }
 
                 // archive+save only non-error api calls + logging
                 if (!$element->error) {
-                    Config::getInstance()->log->log($scope, $name, $http_opts);
-                    Config::getInstance()->archive->save($this->userid, $this->key, $scope, $name, $opts, $this->xml);
+                    $this->log->log($scope, $name, $http_opts);
+                    $this->archive->save($this->userId, $this->key, $scope, $name, $options, $this->xml);
                 } else {
-                    Config::getInstance()->log->errorLog(
+                    $this->log->errorLog(
                         $scope,
                         $name,
                         $http_opts,
@@ -271,7 +336,7 @@ class Pheal
                     );
                 }
 
-                Config::getInstance()->cache->save($this->userid, $this->key, $scope, $name, $opts, $this->xml);
+                $this->cache->save($this->userId, $this->key, $scope, $name, $options, $this->xml);
                 // just forward HTTP Errors
             } catch (HTTPException $e) {
                 throw $e;
@@ -281,7 +346,7 @@ class Pheal
                 // other request errors
             } catch (\Exception $e) {
                 // log + throw error
-                Config::getInstance()->log->errorLog(
+                $this->log->errorLog(
                     $scope,
                     $name,
                     $http_opts,
@@ -293,6 +358,7 @@ class Pheal
         } else {
             $element = @new \SimpleXMLElement($this->xml);
         }
+
         return new Result($element);
     }
 }

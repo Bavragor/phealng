@@ -54,7 +54,7 @@ class FileStorage implements CanArchive
      * @param bool|string $basepath string on where to store files, defaults to ~/.pheal/archive/
      * @param array $options optional config array, valid keys are: delimiter, umask, umask_directory
      */
-    public function __construct($basepath = false, $options = array())
+    public function __construct($basepath = false, $options = [])
     {
         if (!$basepath || !is_string($basepath)) {
             $basepath = getenv('HOME') . '/.pheal/archive/';
@@ -95,17 +95,17 @@ class FileStorage implements CanArchive
                 unset($args[$key]);
             } elseif (!in_array(strtolower($key), array('userid', 'apikey', 'keyid', 'vcode'))) {
                 $argstr .= preg_replace($regexp, '_', $key) . $this->options['delimiter'] . preg_replace(
-                    $regexp,
-                    '_',
-                    $val
-                ) . $this->options['delimiter'];
+                        $regexp,
+                        '_',
+                        $val
+                    ) . $this->options['delimiter'];
             }
         }
         $argstr = substr($argstr, 0, -1);
         $filename = 'Request_' . gmdate('Ymd-His') . ($argstr ? '_' . $argstr : '') . '.xml';
         $filepath = $this->basepath . gmdate(
-            'Y-m-d'
-        ) . '/' . ($userid ? "$userid/$apikey/$scope/$name/" : "public/public/$scope/$name/");
+                'Y-m-d'
+            ) . '/' . ($userid ? "$userid/$apikey/$scope/$name/" : "public/public/$scope/$name/");
         if (!file_exists($filepath)) {
             $oldUmask = umask(0);
             mkdir($filepath, $this->options['umask_directory'], true);

@@ -26,12 +26,15 @@
 */
 namespace Pheal\Fetcher;
 
+/**
+ * @author Kevin Mauel | Bavragor (https://github.com/Bavragor) <kevin.mauel2@gmail.com>
+ */
 interface CanFetch
 {
     /**
      * @param string $url
-     * @param array $opts
+     * @param array $options
      * @return string
      */
-    public function fetch($url, $opts);
+    public function fetch($url, array $options);
 }

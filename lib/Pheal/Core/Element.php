@@ -47,7 +47,7 @@ class Element implements CanConvertToArray
      * container containing information that the EVE API stored in XML attributes
      * @var array
      */
-    public $_attribs = array();
+    public $_attribs = [];
 
     /**
      * create new PhealElement
@@ -90,7 +90,7 @@ class Element implements CanConvertToArray
      */
     public function toArray()
     {
-        $return = array();
+        $return = [];
         foreach ($this->_attribs as $key => $value) {
             $return[$key] = $value;
         }

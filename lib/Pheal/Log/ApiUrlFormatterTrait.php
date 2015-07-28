@@ -27,7 +27,7 @@
 
 namespace Pheal\Log;
 
-use Pheal\Core\Config;
+use Pheal\Core\Configurable;
 
 /**
  * ApiUrlFormatterTrait provide a simple formatter for logging api requests
@@ -36,6 +36,8 @@ use Pheal\Core\Config;
  */
 trait ApiUrlFormatterTrait
 {
+    use Configurable;
+
     /**
      * returns formatted url for logging
      *
@@ -48,23 +50,23 @@ trait ApiUrlFormatterTrait
     protected function formatUrl($scope, $name, $opts, $truncateKey = true)
     {
         // create url
-        $url = Config::getInstance()->api_base.$scope.'/'.$name.'.xml.aspx';
+        $url = $this->api_base . $scope . '/' . $name . '.xml.aspx';
 
         // truncacte apikey for log safety
         if ($truncateKey && count($opts)) {
             if (isset($opts['apikey'])) {
-                $opts['apikey'] = substr($opts['apikey'], 0, 16).'...';
+                $opts['apikey'] = substr($opts['apikey'], 0, 16) . '...';
             }
             if (isset($opts['vCode'])) {
-                $opts['vCode'] = substr($opts['vCode'], 0, 16).'...';
+                $opts['vCode'] = substr($opts['vCode'], 0, 16) . '...';
             }
         }
 
         // add post data
-        if (Config::getInstance()->http_post) {
-            $url .= ' DATA: '.http_build_query($opts, '', '&');
+        if ($this->http_post) {
+            $url .= ' DATA: ' . http_build_query($opts, '', '&');
         } elseif (count($opts)) { // add data to url
-            $url .= '?'.http_build_query($opts, '', '&');
+            $url .= '?' . http_build_query($opts, '', '&');
         }
 
         return $url;

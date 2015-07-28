@@ -50,7 +50,7 @@ class RowSet extends \ArrayObject implements CanConvertToArray
         $this->_name = (String)($name !== null) ? $name : $xml->attributes()->name;
 
         foreach ($xml->$rowname as $rowxml) {
-            $row = array();
+            $row = [];
             foreach ($rowxml->attributes() as $attkey => $attval) {
                 $row[$attkey] = (String)$attval;
             }
@@ -70,7 +70,7 @@ class RowSet extends \ArrayObject implements CanConvertToArray
      */
     public function toArray()
     {
-        $return = array();
+        $return = [];
         foreach ($this as $row) {
             if ($row instanceof CanConvertToArray) {
                 $return[] = $row->toArray();

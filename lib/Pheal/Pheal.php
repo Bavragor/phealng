@@ -27,6 +27,8 @@
 
 namespace Pheal;
 
+use Apix\Cache\Factory;
+use Apix\Cache\PsrCache\Item;
 use Pheal\Access\CanAccess;
 use Pheal\Archive\CanArchive;
 use Pheal\Cache\CanCache;
@@ -37,9 +39,10 @@ use Pheal\Exceptions\PhealException;
 use Pheal\Fetcher\CanFetch;
 use Pheal\Log\CanLog;
 use Pheal\RateLimiter\CanRateLimit;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Pheal (PHp Eve Api Library), a EAAL Port for PHP
+ * Pheal (PHP Eve Api Library), a EAAL Port for PHP
  * @method Result APIKeyInfo()
  * @author Kevin Mauel | Bavragor (https://github.com/Bavragor) <kevin.mauel2@gmail.com>
  */
@@ -51,6 +54,12 @@ class Pheal
      * @var string
      */
     const VERSION = '3.0.0';
+
+    /**
+     * Prefix for Cache Keys
+     * @var String
+     */
+    const CACHE_PREFIX = 'Pheal';
 
     /**
      * @var int
@@ -128,7 +137,7 @@ class Pheal
 
     /**
      * creates new Pheal API object
-     * @param CanCache $cache
+     * @param CacheItemPoolInterface $cache
      * @param CanArchive $archive
      * @param CanLog $log
      * @param CanAccess $access
@@ -139,7 +148,7 @@ class Pheal
      * @param string $scope to use, defaults to account. Can be changed during runtime by modifying attribute "scope"
      */
     public function __construct(
-        CanCache $cache,
+        CacheItemPoolInterface $cache,
         CanArchive $archive,
         CanLog $log,
         CanAccess $access,
@@ -298,7 +307,11 @@ class Pheal
         }
 
         // check cache first
-        if (!$this->xml = $this->cache->load($this->userId, $this->key, $scope, $name, $options)) {
+        if (
+            $this->cache->getItem(
+                sprintf('%s-%s-%s-%s-%s', self::CACHE_PREFIX, $this->userId, $this->key, $scope, $name)
+            )->exists() !== true
+        ) {
             try {
                 // start measure the response time
                 $this->log->start();
@@ -336,7 +349,12 @@ class Pheal
                     );
                 }
 
-                $this->cache->save($this->userId, $this->key, $scope, $name, $options, $this->xml);
+                $cacheItem = new Item(
+                    sprintf('%s-%s-%s-%s-%s', self::CACHE_PREFIX, $this->userId, $this->key, $scope, $name),
+                    $this->xml
+                );
+
+                $this->cache->save($cacheItem);
                 // just forward HTTP Errors
             } catch (HTTPException $e) {
                 throw $e;
@@ -356,7 +374,11 @@ class Pheal
             }
 
         } else {
-            $element = @new \SimpleXMLElement($this->xml);
+            $element = @new \SimpleXMLElement(
+                $this->cache->getItem(
+                    sprintf('%s-%s-%s-%s-%s', self::CACHE_PREFIX, $this->userId, $this->key, $scope, $name)
+                )->get()
+            );
         }
 
         return new Result($element);

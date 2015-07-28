@@ -2,6 +2,7 @@
 
 namespace Pheal\Tests;
 
+use Apix\Cache\Factory;
 use Pheal\Cache\NullStorage as CacheNullStorage;
 use Pheal\Archive\NullStorage as ArchiveNullStorage;
 use Pheal\Log\NullStorage as LogNullStorage;
@@ -20,7 +21,7 @@ class PhealTest extends PHPUnit_Framework_TestCase {
     public function testBasicPhealUsage()
     {
         $pheal = new Pheal(
-            new CacheNullStorage(),
+            Factory::getPool([]),
             new ArchiveNullStorage(),
             new LogNullStorage(),
             new NullAccess(),
@@ -41,7 +42,34 @@ class PhealTest extends PHPUnit_Framework_TestCase {
             explode(',', rtrim(ltrim(file_get_contents(__DIR__.'/../../apiTestsInformation.txt'))));
 
         $pheal = new Pheal(
-            new CacheNullStorage(),
+            Factory::getPool([]),
+            new ArchiveNullStorage(),
+            new LogNullStorage(),
+            new NullAccess(),
+            new Guzzle(),
+            new NullRateLimiter(),
+            $apiKeyInformation[0],
+            $apiKeyInformation[1]
+        );
+
+        $response = $pheal->accountScope->Characters();
+
+        $this->assertNotEmpty($response);
+    }
+
+    public function testCachePhealUsage()
+    {
+        $apiKeyInformation =
+            explode(',', rtrim(ltrim(file_get_contents(__DIR__.'/../../apiTestsInformation.txt'))));
+
+        $redis = new \Redis();
+
+        if($redis->connect('127.0.0.1') === false) {
+            $this->markTestSkipped('There is no redis instance running!');
+        }
+
+        $pheal = new Pheal(
+            Factory::getPool($redis),
             new ArchiveNullStorage(),
             new LogNullStorage(),
             new NullAccess(),

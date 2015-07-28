@@ -41,7 +41,7 @@ use Pheal\RateLimiter\CanRateLimit;
 /**
  * Pheal (PHp Eve Api Library), a EAAL Port for PHP
  * @method Result APIKeyInfo()
- * @author Kevin Mauel | Bavragor <kevin.mauel2@gmail.com>
+ * @author Kevin Mauel | Bavragor (https://github.com/Bavragor) <kevin.mauel2@gmail.com>
  */
 class Pheal
 {

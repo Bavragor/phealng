@@ -4,7 +4,7 @@ namespace Pheal\Fetcher;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Pheal\Core\Config;
+use Pheal\Core\Configurable;
 use Pheal\Exceptions\ConnectionException;
 use Pheal\Exceptions\HTTPException;
 use Pheal\Pheal;
@@ -13,8 +13,10 @@ use Pheal\Pheal;
 /**
  * @author Kevin Mauel | Bavragor (https://github.com/Bavragor) <kevin.mauel2@gmail.com>
  */
-class Guzzle extends CanFetch
+class Guzzle implements CanFetch
 {
+    use Configurable;
+
     /**
      * @var \GuzzleHttp\ClientInterface
      */
@@ -47,7 +49,7 @@ class Guzzle extends CanFetch
             $response = $this->client->request(
                 $this->http_post === true ? 'POST' : 'GET',
                 $url,
-                $options
+                ['query' => $options]
             );
         } catch (GuzzleException $exception) {
             throw new ConnectionException(

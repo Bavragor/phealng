@@ -31,7 +31,7 @@ namespace Pheal\Log;
  * null log, as a placeholder if no logging is used
  */
 
-use Pheal\Core\Config;
+use Pheal\Core\Configurable;
 use Psr\Log\LoggerInterface;
 
 class PsrLogger implements CanLog
@@ -39,6 +39,7 @@ class PsrLogger implements CanLog
     // import response timer
     use ResponseTimerTrait;
     use ApiUrlFormatterTrait;
+    use Configurable;
 
     /**
      * @var LoggerInterface
@@ -71,7 +72,7 @@ class PsrLogger implements CanLog
         $this->logger->info(
             sprintf(
                 '%s to %s (%2.4fs)',
-                (Config::getInstance()->http_post ? 'POST' : 'GET'),
+                ($this->http_post ? 'POST' : 'GET'),
                 $this->formatUrl($scope, $name, $opts),
                 $this->responseTime
             )
@@ -97,7 +98,7 @@ class PsrLogger implements CanLog
         $this->logger->error(
             sprintf(
                 'failed: %s to %s (%2.4fs), message: %s',
-                (Config::getInstance()->http_post ? 'POST' : 'GET'),
+                ($this->http_post ? 'POST' : 'GET'),
                 $this->formatUrl($scope, $name, $opts),
                 $this->responseTime,
                 $message

@@ -27,7 +27,7 @@
 
 namespace Pheal\Log;
 
-use Pheal\Core\Config;
+use Pheal\Core\Configurable;
 
 /**
  * Class FileStorage a simple file_put_contents based logger
@@ -43,6 +43,8 @@ class FileStorage implements CanLog
     // import api url formatter
     use ApiUrlFormatterTrait;
 
+    use Configurable;
+
     /**
      * path where to store the logs
      *
@@ -57,7 +59,7 @@ class FileStorage implements CanLog
      *
      * @var array
      */
-    protected $options = array(
+    protected static $options = [
         'access_log' => 'pheal_access.log',
         'error_log' => 'pheal_error.log',
         'access_format' => "%s [%s] %2.4fs %s\n",
@@ -65,7 +67,7 @@ class FileStorage implements CanLog
         'truncate_apikey' => true,
         'umask' => 0666,
         'umask_directory' => 0777,
-    );
+    ];
 
     /**
      * construct
@@ -112,7 +114,7 @@ class FileStorage implements CanLog
             sprintf(
                 $this->options['access_format'],
                 date('r'),
-                (Config::getInstance()->http_post ? 'POST' : 'GET'),
+                ($this->http_post ? 'POST' : 'GET'),
                 $this->responseTime,
                 $this->formatUrl($scope, $name, $opts, $this->options['truncate_apikey'])
             ),
@@ -183,7 +185,7 @@ class FileStorage implements CanLog
             sprintf(
                 $this->options['error_format'],
                 date('r'),
-                (Config::getInstance()->http_post ? 'POST' : 'GET'),
+                ($this->http_post ? 'POST' : 'GET'),
                 $this->responseTime,
                 $this->formatUrl($scope, $name, $opts, $this->options['truncate_apikey']),
                 $message

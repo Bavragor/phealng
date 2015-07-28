@@ -34,4 +34,25 @@ class PhealTest extends PHPUnit_Framework_TestCase {
             $response->serverOpen === 'False'
         );
     }
+
+    public function testAdvancedPhealUsage()
+    {
+        $apiKeyInformation =
+            explode(',', rtrim(ltrim(file_get_contents(__DIR__.'/../../apiTestsInformation.txt'))));
+
+        $pheal = new Pheal(
+            new CacheNullStorage(),
+            new ArchiveNullStorage(),
+            new LogNullStorage(),
+            new NullAccess(),
+            new Guzzle(),
+            new NullRateLimiter(),
+            $apiKeyInformation[0],
+            $apiKeyInformation[1]
+        );
+
+        $response = $pheal->accountScope->Characters();
+
+        $this->assertNotEmpty($response);
+    }
 }
